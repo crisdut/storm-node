@@ -24,6 +24,7 @@ use crate::transferd::automation::State;
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
+    let ext_endpoint = config.ext_endpoint.clone();
     let rpc_endpoint = config.rpc_endpoint.clone();
     let ctl_endpoint = config.ctl_endpoint.clone();
     let msg_endpoint = config.msg_endpoint.clone();
@@ -32,6 +33,11 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     debug!("Connecting to service buses {}, {}", rpc_endpoint, ctl_endpoint);
     let controller = esb::Controller::with(
         map! {
+            ServiceBus::Storm => esb::BusConfig::with_addr(
+                ext_endpoint,
+                ZmqSocketType::RouterConnect,
+                Some(ServiceId::stormd())
+            ),
             ServiceBus::Rpc => esb::BusConfig::with_addr(
                 rpc_endpoint,
                 ZmqSocketType::RouterConnect,
